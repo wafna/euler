@@ -18,11 +18,14 @@ data Showable = forall a . Show a => Showable a
 main :: IO ()
 main = do
    args <- getArgs
-   putStrLn $ show args
    case args of
-      [] -> putStrLn "Enter a problem number to run."
-      x : _ -> printResult $ (listArray (1, length problems) problems) ! (read x)
+      [] -> putStrLn "Enter problem number(s) to run."
+      xs -> sequence_ $ map runProblem xs
    where
+   runProblem :: String -> IO ()
+   runProblem x = do
+      putStrLn $ concat ["-- problem ", show x]
+      printResult $ (listArray (1, length problems) problems) ! (read x)
    printResult (Showable a) = putStrLn $ show a
 
 problems :: [Showable]
@@ -42,7 +45,7 @@ problems =
 
 -- | This lets us shove nasty huge blocks of data off to files (and speed up the compile considerably).
 readData :: (Read a) => FilePath -> a
-readData = read . unsafePerformIO . readFile
+readData = read . unsafePerformIO . readFile . ((++) "data/")
 
 
 factorial :: Integer -> Integer
