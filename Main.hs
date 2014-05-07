@@ -185,13 +185,8 @@ p12 = head $ dropWhile (\ n -> (500 :: Integer) > aliquots n) $ triangles 3 6
 
 -- | Work out the first ten digits of the sum of the following one-hundred 50-digit numbers.
 -- NB converting each number to a Double would be leaner and a Double has more than enough precision to get us the first ten digits.
-p13 :: Integer
-p13 = 
-   let
-      nums :: [Integer]
-      nums = readData "p13.txt"
-   in
-   read $ take 10 $ show $ sum nums
+p13 :: String
+p13 = take 10 $ show $ sum ((readData "p13.txt") :: [Integer])
 
 -- | Which starting number, under one million, produces the longest Collatz sequence?
 p14 :: Integer
@@ -210,12 +205,13 @@ p15 = (factorial 40) `div` (factorial 20 * factorial 20)
 
 -- | What is the sum of the digits of the number 21000?
 p16 :: Integer
-p16 = sum $ map (\c -> read [c]) $ show $ (2 :: Integer)^(1000 :: Integer)
+p16 = sum $ map (\c -> read [c]) $ show $ (2 :: Integer)^(1000 :: Integer) -- brute force
 
 -- | Find the maximum total from top to bottom of the triangle.
 p18 :: Int
 p18 = 
    -- fold right is key, here.
+   -- each fold rolls the triangle up from the bottom
    head $ foldr1 combine $ readData "p18.txt"
    where
    -- combine two rows by adding in the larger adjacent value from the second row into each value in the first row
