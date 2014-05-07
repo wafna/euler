@@ -19,24 +19,26 @@ main = do
    putStrLn $ show args
    case args of
       [] -> putStrLn "Enter a problem number to run."
-      x : _ -> case (listArray (1, length problems) problems) ! (read x) of
-         Nothing -> putStrLn $ "No problem: " ++ x
-         Just p -> printResult p
+      x : _ -> printResult $ (listArray (1, length problems) problems) ! (read x)
    where
    printResult (Showable a) = putStrLn $ show a
 
-problems :: [Maybe Showable]
+problems :: [Showable]
 problems = 
       [ s p1, s p2, s p3, s p4, s p5, s p6, s p7, s p8, s p9, s p10
-      , s p11, s p12, s p13, s p14, u
+      , s p11, s p12, s p13, s p14, s p15, s p16, u 17, s p18, u 19, s p20
       ]
    where
-   s :: Show a => a -> Maybe Showable
-   s = Just . Showable
-   u = Nothing -- in case I skip a problem
+   s :: Show a => a -> Showable
+   s = Showable
+   u :: Int -> a
+   u x = error $ "No problem: " ++ show x -- in case I skip a problem
 
 
 -- Utilities
+
+factorial :: Integer -> Integer
+factorial n = if n==0 then 1 else n * factorial(n-1)
 
 -- | http://www.haskell.org/haskellwiki/Prime_numbers
 primesToG :: Integer -> [Integer]
@@ -70,6 +72,8 @@ minus  xs     _     = xs
 --           GT -> y : union (x:xs)  ys
 --union  xs     []    = xs
 --union  []     ys    = ys
+
+-- PROBLEMS
 
 -- | Find the sum of all the multiples of 3 or 5 below 1000.
 p1 :: Integer
@@ -325,3 +329,47 @@ p14 = snd $ List.maximumBy (\ x y -> fst x `compare` fst y) $ map (\n -> (collat
       | n == 1         = s
       | 0 == n `mod` 2 = collatz (s + 1) (n `div` 2)
       | otherwise      = collatz (s + 1) (3 * n + 1)
+
+-- | How many such routes are there through a 20×20 grid?
+-- This is just a Bernoulli problem where we're looking for the number of ways to flip 40 fair coins and get exactly half heads and half tails.
+p15 :: Integer
+p15 = (factorial 40) `div` (factorial 20 * factorial 20)
+
+-- | What is the sum of the digits of the number 21000?
+p16 :: Integer
+p16 = sum $ map (\c -> read [c]) $ show $ (2 :: Integer)^(1000 :: Integer)
+
+p18 :: Int
+p18 = 
+   let
+      triangle = 
+         [ [ 75 ]
+         , [ 95, 64 ]
+         , [ 17, 47, 82 ]
+         , [ 18, 35, 87, 10 ]
+         , [ 20, 04, 82, 47, 65 ]
+         , [ 19, 01, 23, 75, 03, 34 ]
+         , [ 88, 02, 77, 73, 07, 63, 67 ]
+         , [ 99, 65, 04, 28, 06, 16, 70, 92 ]
+         , [ 41, 41, 26, 56, 83, 40, 80, 70, 33 ]
+         , [ 41, 48, 72, 33, 47, 32, 37, 16, 94, 29 ]
+         , [ 53, 71, 44, 65, 25, 43, 91, 52, 97, 51, 14 ]
+         , [ 70, 11, 33, 28, 77, 73, 17, 78, 39, 68, 17, 57 ]
+         , [ 91, 71, 52, 38, 17, 14, 91, 43, 58, 50, 27, 29, 48 ]
+         , [ 63, 66, 04, 68, 89, 53, 67, 30, 73, 16, 69, 87, 40, 31 ]
+         , [ 04, 62, 98, 27, 23, 09, 70, 98, 73, 93, 38, 53, 60, 04, 23 ]
+         ]
+   in
+   head $ foldr1 combine triangle
+   where
+   -- combine two rows by adding in the larger adjacent value from the second row into each value in the first row
+   combine :: [Int] -> [Int] -> [Int]
+   combine xs ys = map (\ (x, p) -> x + (uncurry max) p) $ zip xs (pairwise ys)
+   pairwise :: [a] -> [(a,a)]
+   pairwise xs = case xs of
+      p : t@(q : _) -> (p,q) : pairwise t
+      _ -> []
+
+-- | Find the sum of the digits in the number 100!
+p20 :: Int
+p20 = sum $ map (\ c -> read [c]) $ show $ factorial 100
