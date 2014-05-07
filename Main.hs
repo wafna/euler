@@ -6,6 +6,7 @@ import System.Environment
 import Data.Function(fix)
 import Data.Maybe
 import Data.Array
+import Data.Char(ord)
 import qualified Data.List as List
 
 import System.IO.Unsafe
@@ -28,7 +29,7 @@ problems :: [Showable]
 problems = 
       [ s p1, s p2, s p3, s p4, s p5, s p6, s p7, s p8, s p9, s p10
       , s p11, s p12, s p13, s p14, s p15, s p16, u 17, s p18, u 19, s p20
-      , s p21, u 22, s p23
+      , s p21, s p22, s p23
       ]
    where
    s :: Show a => a -> Showable
@@ -235,6 +236,14 @@ p21 =
    sum $ map (uncurry (+)) $ filter (uncurry amicable) [(a,b) | a <- [2..(t-1)], b <- [(a+1)..t]]
    where
    amicable p q = (sum $ properDivisors p) == q && (sum $ properDivisors q) == p
+
+p22 :: Int
+p22 = 
+   sum $ map (uncurry (*)) $ zip [1..] $ map scoreName $ List.sort $ readData "p22.txt"
+   where
+   a = ord 'A' - 1
+   scoreName :: String -> Int
+   scoreName s = sum $ map (\ c -> ord c - a) s
 
 -- | Find the sum of all the positive integers which cannot be written as the sum of two abundant numbers.
 -- All integers greater than 28123 can be written as the sum of two abundant numbers.
