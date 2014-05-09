@@ -14,3 +14,5 @@ log/
 pid.*
 state/
 .vagrant/
+*.sublime-workspace
+scala/
