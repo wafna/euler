@@ -5,6 +5,7 @@ module Main (main) where
 import System.Environment
 import Data.Function(fix)
 import Data.Maybe
+import qualified Data.Set as Set (fromList, member)
 import Data.Array
 import Data.Char(ord)
 import qualified Data.List as List
@@ -26,6 +27,7 @@ main = do
    runProblem x = do
       putStrLn $ concat ["-- problem ", show x]
       printResult $ (listArray (1, length problems) problems) ! (read x)
+   -- This needs to be its own function so we can destructure the Showable.
    printResult (Showable a) = putStrLn $ show a
 
 problems :: [Showable]
@@ -126,6 +128,7 @@ p5 :: Integer
 p5 = 20 * 19 * 9 * 17 * 4 * 7 * 13 * 11
 
 -- | Find the difference between the sum of the squares of the first one hundred natural numbers and the square of the sum.
+-- Euler came up with the analytic expressions for these two terms.  I feel shame for not having used them.
 p6 :: Integer
 p6 = let ns = [1..100] in (sq $ sum ns) - (sum $ fmap sq ns)
    where
@@ -133,7 +136,7 @@ p6 = let ns = [1..100] in (sq $ sum ns) - (sum $ fmap sq ns)
 
 -- | What is the 10 001st prime number?
 p7 :: Integer
-p7 = head $ drop 10000 $ primesPE
+p7 = head $ drop 10000 $ primesPE -- brute force
 
 -- | Find the greatest product of five consecutive digits in the 1000-digit number.
 p8 :: Int
@@ -240,6 +243,7 @@ p21 =
    where
    amicable p q = (sum $ properDivisors p) == q && (sum $ properDivisors q) == p
 
+-- | What is the total of all the name scores in the file?
 p22 :: Int
 p22 = 
    sum $ map (uncurry (*)) $ zip [1..] $ map scoreName $ List.sort $ readData "p22.txt"
@@ -252,6 +256,14 @@ p22 =
 -- All integers greater than 28123 can be written as the sum of two abundant numbers.
 p23 :: Int
 p23 = 
-   let ubound = 21823 in
-   length $ filter ((==) GT) $ map perfection [12..ubound]
-   
+   let 
+      ubound :: Int
+      ubound = 21823
+      abundants :: [Int]
+      -- we can knock 12 off because anything bigger could not be used in a sum to create another number less than the limit.
+      abundants = filter (\ n -> perfection (fromIntegral n) == GT) [12..ubound]
+      absums = Set.fromList [ x + y | x <- abundants, y <- abundants, x + y <= ubound ]
+   in
+   sum $ filter (\ n -> not $ Set.member n absums) [1..ubound]
+
+
