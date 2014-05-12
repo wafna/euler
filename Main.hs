@@ -34,7 +34,8 @@ problems :: [Showable]
 problems = 
       [ s p1, s p2, s p3, s p4, s p5, s p6, s p7, s p8, s p9, s p10
       , s p11, s p12, s p13, s p14, s p15, s p16, u 17, s p18, u 19, s p20
-      , s p21, s p22, s p23
+      , s p21, s p22, s p23, s p24, u 25, u 26, u 27, u 28, u 29, u 30
+      , u 31, u 32, u 33, u 34, u 35, u 38, u 37, u 38, u 39, u 40
       ]
    where
    s :: Show a => a -> Showable
@@ -266,4 +267,24 @@ p23 =
    in
    sum $ filter (\ n -> not $ Set.member n absums) [1..ubound]
 
+-- | What is the millionth lexicographic permutation of the digits 0, 1, 2, 3, 4, 5, 6, 7, 8 and 9?
+-- Rather than slogging through permutations we're going to calculate how many
+-- permutations are required to get to the target.
+-- For example, each possible choice of the first number has P(9,9) permuations.
+-- So, we take as many of those as we can and the number we can take directly indicates which item from the set of choices will be
+-- the first element of the target permutation.
+-- Having determined the first number we execute the same process for the second number, etc.
+p24 :: [Integer]
+p24 = snd $ List.mapAccumL makeChoice (999999, objects) choicesByPosition
+   where
+   objects = [0..9]
+   choicesByPosition :: [Integer]
+   choicesByPosition = map factorial $ reverse objects
+   makeChoice :: (Integer, [Integer]) -> Integer -> ((Integer, [Integer]), Integer)
+   makeChoice (remainingPermutations, remainingChoices) choicesAtThisPosition = 
+      let
+         nthchoice = remainingPermutations `div` choicesAtThisPosition
+         (h, t) = splitAt (fromIntegral nthchoice) remainingChoices
+      in
+      ((remainingPermutations `mod` choicesAtThisPosition, h ++ tail t), head t)
 
