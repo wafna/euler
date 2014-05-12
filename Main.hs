@@ -5,7 +5,7 @@ module Main (main) where
 import System.Environment
 import Data.Function(fix)
 import Data.Maybe
-import qualified Data.Set as Set (fromList, member)
+import qualified Data.Set as Set (fromList, member, size)
 import Data.Array
 import Data.Char(ord)
 import qualified Data.List as List
@@ -34,7 +34,7 @@ problems :: [Showable]
 problems = 
       [ s p1, s p2, s p3, s p4, s p5, s p6, s p7, s p8, s p9, s p10
       , s p11, s p12, s p13, s p14, s p15, s p16, u 17, s p18, u 19, s p20
-      , s p21, s p22, s p23, s p24, u 25, u 26, u 27, u 28, u 29, u 30
+      , s p21, s p22, s p23, s p24, s p25, u 26, s p27, s p28, s p29, u 30
       , u 31, u 32, u 33, u 34, u 35, u 38, u 37, u 38, u 39, u 40
       ]
    where
@@ -49,6 +49,18 @@ problems =
 -- | This lets us shove nasty huge blocks of data off to files (and speed up the compile considerably).
 readData :: (Read a) => FilePath -> a
 readData = read . unsafePerformIO . readFile . ((++) "data/")
+
+
+isPrime :: Integer -> Bool
+isPrime x = 
+   let 
+      root = floor $ ((sqrt $ fromInteger x) :: Double)
+      test t
+         | t > root = True
+         | 0 == x `mod` t = False
+         | otherwise = test $ t + 1
+   in
+   test 2
 
 
 factorial :: Integer -> Integer
@@ -150,13 +162,16 @@ p8 = let s = fmap (\ c -> read [c]) $ concat $ readData "p8.txt"
 
 -- | There exists exactly one Pythagorean triplet for which a + b + c = 1000. Find the product abc.
 p9 :: Int
-p9 = (\(a,b,c) -> a * b * c) $ head [(a,b,c) | a <- [1..1000], b <- [1..1000], c <- [1..1000], a * a + b * b == c * c, a + b + c == 1000]
+p9 = (\(a,b,c) -> a * b * c) $ head [(a,b,c) | 
+   a <- [1..1000], b <- [1..1000], 
+   c <- [1..1000], a * a + b * b == c * c, a + b + c == 1000]
 
 -- | Find the sum of all the primes below two million.
 p10 :: Integer
 p10 = sum $ primesToG 2000000
 
--- | What is the greatest product of four adjacent numbers in the same direction (up, down, left, right, or diagonally) in the 20×20 grid?
+-- | What is the greatest product of four adjacent numbers in the same direction (up, down, left, right, or diagonally)
+-- in the 20×20 grid?
 p11 :: Int
 p11 = 
    let 
@@ -192,7 +207,8 @@ p12 = head $ dropWhile (\ n -> (500 :: Integer) > aliquots n) $ triangles 3 6
       foldl (\ s f -> s + if 0 == x `mod` f then 2 else 0) 1 [2..m]
 
 -- | Work out the first ten digits of the sum of the following one-hundred 50-digit numbers.
--- NB converting each number to a Double would be leaner and a Double has more than enough precision to get us the first ten digits.
+-- NB converting each number to a Double would be leaner and a Double has more than enough precision to get us the 
+-- first ten digits.
 p13 :: String
 p13 = take 10 $ show $ sum ((readData "p13.txt") :: [Integer])
 
@@ -207,7 +223,8 @@ p14 = snd $ List.maximumBy (\ x y -> fst x `compare` fst y) $ map (\n -> (collat
       | otherwise      = collatz (s + 1) (3 * n + 1)
 
 -- | How many such routes are there through a 20×20 grid?
--- This is just a Bernoulli problem where we're looking for the number of ways to flip 40 fair coins and get exactly half heads and half tails.
+-- This is just a Bernoulli problem where we're looking for the number of ways to flip 40 fair coins and get exactly 
+-- half heads and half tails.
 p15 :: Integer
 p15 = (factorial 40) `div` (factorial 20 * factorial 20)
 
@@ -261,7 +278,8 @@ p23 =
       ubound :: Int
       ubound = 21823
       abundants :: [Int]
-      -- we can knock 12 off because anything bigger could not be used in a sum to create another number less than the limit.
+      -- we can knock 12 off because anything bigger could not be used in a sum to create another number less than the 
+      -- limit.
       abundants = filter (\ n -> perfection (fromIntegral n) == GT) [12..ubound]
       absums = Set.fromList [ x + y | x <- abundants, y <- abundants, x + y <= ubound ]
    in
@@ -271,8 +289,8 @@ p23 =
 -- Rather than slogging through permutations we're going to calculate how many
 -- permutations are required to get to the target.
 -- For example, each possible choice of the first number has P(9,9) permuations.
--- So, we take as many of those as we can and the number we can take directly indicates which item from the set of choices will be
--- the first element of the target permutation.
+-- So, we take as many of those as we can and the number we can take directly indicates which item from the set of choices
+-- will be the first element of the target permutation.
 -- Having determined the first number we execute the same process for the second number, etc.
 p24 :: [Integer]
 p24 = snd $ List.mapAccumL makeChoice (999999, objects) choicesByPosition
@@ -288,3 +306,32 @@ p24 = snd $ List.mapAccumL makeChoice (999999, objects) choicesByPosition
       in
       ((remainingPermutations `mod` choicesAtThisPosition, h ++ tail t), head t)
 
+-- | What is [the index of] the first term in the Fibonacci sequence to contain 1000 digits?
+p25 :: Int
+p25 = length $ takeWhile (\n -> 1000 > (length $ show n)) fibs
+   where
+   fibs = (0 :: Integer) : scanl (+) 1 fibs
+
+-- | Find the product of the coefficients, a and b, for the quadratic expression that produces the maximum number of primes for consecutive values of n, 
+-- starting with n = 0, where |a| < 1000 and |b| < 1000 for n² + an + b.
+-- NB b must be prime because the quadratic must produce a prime number at n = 0.
+p27 :: Integer
+p27 = uncurry (*) $ fst $ List.maximumBy (\ p q -> (snd p) `compare` (snd q)) $ 
+   map (\ p@(a,b) -> (p, genPrimes a b)) [(a,b) | a <- [(-999)..999], b <- 1 : primesToG 999]
+   where
+   genPrimes :: Integer -> Integer -> Int
+   genPrimes a b = length $ takeWhile (\ x -> x > 0 && isPrime x) $ map (\ n -> n * n + a * n + b) [0..]
+
+-- | What is the sum of the numbers on the diagonals in a 1001 by 1001 spiral formed in the same way?
+p28:: Integer
+p28 = layers 1 1 1
+   where
+   limit = 1001
+   layers s n c = let delta = 2 * n in 
+      if delta <= limit 
+         then layers (s + 4 * c + 10 * delta) (n + 1) (c + 4 * delta)
+         else s
+
+-- | How many distinct terms are in the sequence generated by ab for 2 ≤ a ≤ 100 and 2 ≤ b ≤ 100?
+p29 :: Int
+p29 = Set.size $ Set.fromList $ map (uncurry (^)) [(a,b) | a <- [2..(100::Integer)], b <- [2..(100::Integer)]]
