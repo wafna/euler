@@ -38,7 +38,7 @@ problems =
       [ s p1, s p2, s p3, s p4, s p5, s p6, s p7, s p8, s p9, s p10
       , s p11, s p12, s p13, s p14, s p15, s p16, u 17, s p18, u 19, s p20
       , s p21, s p22, s p23, s p24, s p25, u 26, s p27, s p28, s p29, s p30
-      , s p31, u 32, u 33, u 34, u 35, u 38, u 37, u 38, u 39, u 40
+      , s p31, u 32, u 33, s p34, u 35, u 38, u 37, u 38, u 39, u 40
       ]
    where
    s :: Show a => a -> Showable
@@ -64,6 +64,9 @@ isPrime x =
          | otherwise = test $ t + 1
    in
    test 2
+
+int2digits :: (Integral a, Read a) => Integer -> [a]
+int2digits n = map (\ c -> read [c]) $ show n
 
 
 factorial :: Integer -> Integer
@@ -233,7 +236,7 @@ p15 = (factorial 40) `div` (factorial 20 * factorial 20)
 
 -- | What is the sum of the digits of the number 21000?
 p16 :: Integer
-p16 = sum $ map (\c -> read [c]) $ show $ 2 ^ 1000 -- brute force
+p16 = sum $ int2digits $ 2 ^ 1000 -- brute force
 
 -- | Find the maximum total from top to bottom of the triangle.
 p18 :: Int
@@ -253,7 +256,7 @@ p18 =
 
 -- | Find the sum of the digits in the number 100!
 p20 :: Int
-p20 = sum $ map (\ c -> read [c]) $ show $ factorial 100
+p20 = sum $ int2digits $ factorial 100
 
 -- | Evaluate the sum of all the amicable numbers under 10000.
 p21 :: Integer
@@ -346,7 +349,7 @@ p30 = sum $ filter (\n -> n == sumDigP n) [10 .. 360000]
    where
    -- the fifth powers of the digits, precomputed for efficiency
    d5s = listArray (0,9) $ map (^ 5) [0..9]
-   sumDigP n = sum $ map (\ d -> d5s ! (read [d])) $ show n
+   sumDigP n = sum $ map (\ d -> d5s ! d) $ int2digits n
 
 -- | How many different ways can £2 be made using any number of coins?
 p31 :: Int
@@ -361,3 +364,9 @@ p31 = makeSet 200 [200, 100, 50, 20, 10, 5, 2, 1] 0
             waysWithNextCoin = if 1 < length coins then makeSet amount (tail coins) ways else 0
          in
          waysWithCurrentCoin + waysWithNextCoin
+
+p34 :: Integer
+p34 = sum $ filter test [10 .. 10000000]
+   where
+   dfacs = listArray (0,9) $ map factorial [0..9]
+   test n = n == (sum $ map (\d -> dfacs ! d) $ int2digits n)
